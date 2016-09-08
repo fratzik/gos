@@ -21,11 +21,11 @@ func (np *noprocessProcessor) process(file *zip.File) string {
 
 	processedContent := ""
 
-	//scan each line
 	for s.Scan() {
 		processedContent += s.Text() + lineEnd
 	}
 
-	return processedContent
+	writeContentToTempFile(processedContent, file.Name)
 
+	return ""
 }

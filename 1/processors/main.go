@@ -2,7 +2,10 @@ package processors
 
 import (
 	"archive/zip"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -34,14 +37,31 @@ func getProcessor(fileName string) Processor {
 	return new(noprocessProcessor)
 }
 
-// Process a file with the specifications for the theme one
 func process(file *zip.File, tunnel chan fileInfo) {
 
-	// fmt.Printf("Process the file %s\n", file.Name)
+	fmt.Printf("Process the file %s\n", file.Name)
 	processedContent := getProcessor(file.Name).process(file)
+	writeContentToTempFile(processedContent, file.Name)
 	fi := fileInfo{file.Name, processedContent}
 	tunnel <- fi
 
+}
+
+func writeContentToTempFile(content string, fileName string) {
+	contentToWrite := []byte(content)
+	tmpfile, err := ioutil.TempFile("tmp", fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(tmpfile.Name()) // clean up
+
+	if _, err := tmpfile.Write(contentToWrite); err != nil {
+		log.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // ProcessArchive that needs to be transformed
@@ -54,9 +74,12 @@ func ProcessArchive(archiveName string) {
 
 	defer rc.Close()
 
-	// channels := make([]chan fileInfo, len(rc.File))
-
 	for _, file := range rc.File {
-		go process(file, make(chan fileInfo))
+		ch := make(chan fileInfo)
+		process(file, ch)
+
+		fi := <-ch
+
+		fmt.Printf("Res: %v", fi)
 	}
 }

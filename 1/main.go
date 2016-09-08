@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"letsgo/1/processors"
 	"log"
 	"os"
@@ -12,12 +11,6 @@ func init() {
 	log.SetPrefix("» ")
 }
 
-// func handleError(err error) {
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
-
 func main() {
 	args := os.Args[1:]
 
@@ -26,6 +19,4 @@ func main() {
 	}
 
 	processors.ProcessArchive(args[0])
-
-	fmt.Println("All good")
 }
