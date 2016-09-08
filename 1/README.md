@@ -1,1 +1,1 @@
-Go related stuff - theme #1
+Go related stuff - homework #1
