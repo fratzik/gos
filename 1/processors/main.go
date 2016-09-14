@@ -2,16 +2,18 @@ package processors
 
 import (
 	"archive/zip"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+	"sync"
 )
 
 const stringsFileIdent = "_strings_"
 const integersFileIdent = "_integers_"
 const spaceSeparator, lineEnd, valToAdd = " ", "\n", 123
+
+var wg sync.WaitGroup
 
 type fileInfo struct {
 	ProcessedContent string
@@ -37,13 +39,14 @@ func getProcessor(fileName string) Processor {
 	return new(noprocessProcessor)
 }
 
-func process(file *zip.File, tunnel chan fileInfo) {
+func process(file *zip.File /*, tunnel chan int*/) {
 
-	fmt.Printf("Process the file %s\n", file.Name)
+	// fmt.Printf("Process the file %s\n", file.Name)
 	processedContent := getProcessor(file.Name).process(file)
 	writeContentToTempFile(processedContent, file.Name)
-	fi := fileInfo{file.Name, processedContent}
-	tunnel <- fi
+	// fmt.Println("Processing done.")
+	// fi := fileInfo{file.Name, processedContent}
+	wg.Done()
 
 }
 
@@ -75,11 +78,11 @@ func ProcessArchive(archiveName string) {
 	defer rc.Close()
 
 	for _, file := range rc.File {
-		ch := make(chan fileInfo)
-		process(file, ch)
-
-		fi := <-ch
-
-		fmt.Printf("Res: %v", fi)
+		wg.Add(1)
+		process(file)
 	}
+
+	wg.Wait()
+	// fmt.Println("All good - you verify your archive. ;) ")
+
 }
