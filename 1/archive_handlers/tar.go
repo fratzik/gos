@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -43,7 +44,7 @@ func addFile(fileName string, tw *tar.Writer) error {
 	return nil
 }
 
-func TryWrite(targetFile string) {
+func TryToWrite(targetFile string, dirToRead string) {
 	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	file, err := os.OpenFile(targetFile, flags, 0644)
 	if err != nil {
@@ -54,9 +55,11 @@ func TryWrite(targetFile string) {
 	tw := tar.NewWriter(file)
 	defer tw.Close()
 
-	for _, fileName := range files {
-		if err := addFile(fileName, tw); err != nil {
-			log.Fatalf("Failed adding file %s to tar: %s", fileName, err)
+	files, err := ioutil.ReadDir(dirToRead)
+
+	for _, f := range files {
+		if err := addFile(f.Name(), tw); err != nil {
+			log.Fatalf("Failed adding file %s to tar: %s", f.Name(), err)
 		}
 	}
 }
