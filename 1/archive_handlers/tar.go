@@ -1,4 +1,4 @@
-package achive_handlers
+package archive_handlers
 
 import (
 	"archive/tar"

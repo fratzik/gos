@@ -8,7 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	archiveHandlers "https://github.com/fratzik/gos/1/archive_handlers"
+	archiveHandlers "github.com/fratzik/gos/1/archive_handlers"
+	// "github.com/fratzik/gos/1/processors"
 )
 
 const stringsFileIdent = "_strings_"
