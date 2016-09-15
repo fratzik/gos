@@ -7,9 +7,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-
-	archiveHandlers "github.com/fratzik/gos/1/archive_handlers"
-	// "github.com/fratzik/gos/1/processors"
+	// archiveHandlers "../archive_handlers"
+	//archiveHandlers "github.com/fratzik/gos/1/archive_handlers"
 )
 
 const stringsFileIdent = "_strings_"
@@ -87,7 +86,7 @@ func ProcessArchive(archiveName string) {
 
 	wg.Wait()
 
-	archiveHandlers.TryToWrite("result.tar", "../tmp")
+	TryToWrite("result.tar", "./tmp/")
 	// fmt.Println("All good - you verify your archive. ;) ")
 
 }
