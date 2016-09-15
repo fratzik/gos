@@ -1,9 +1,10 @@
 package main
 
 import (
-	"letsgo/1/processors"
 	"log"
 	"os"
+
+	"github.com/fratzik/gos/1/processors"
 )
 
 func init() {
