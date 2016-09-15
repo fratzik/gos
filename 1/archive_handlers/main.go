@@ -1,5 +1,5 @@
-package archive_handler
+package archive_handlers
 
 func main() {
-    
+
 }
