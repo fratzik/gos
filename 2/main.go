@@ -2,57 +2,93 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
-	"net/textproto"
+	_ "net/textproto"
+	"strings"
+	"sync"
 )
+
+var crlf = "\r\n"
+var server, channel, botname string
 
 // Bot struct
 type Bot struct {
 	Server  string
-	Port    string
-	Nick    string
-	User    string
 	Channel string
+	Nick    string
 	Conn    net.Conn
 }
 
-// NewBot - Create a new bot
-func NewBot() *Bot {
-	return &Bot{Server: "bucharest.ro.eu.undernet.org",
-		Port:    "6667",
-		Nick:    "golangbot2217",
-		Channel: "#go-test-bot",
-		Conn:    nil}
+func init() {
+
+	log.SetFlags(0)
+	log.SetPrefix("» ")
+
+	flag.StringVar(&server, "server", "chat.freenode.net:6667", "The server to connect too")
+	flag.StringVar(&channel, "channel", "go-test-bot", "The channel connect too")
+	flag.StringVar(&botname, "test-bot", "gobotnm", "The name of the boot")
+	flag.Parse()
+
+	if server == "" || channel == "" {
+		log.Fatalln("Please set the server and channel params")
+	}
 }
 
-// Connect the bot to the IRC
-func (bot *Bot) Connect() (conn net.Conn, err error) {
-	conn, err = net.Dial("tcp", bot.Server+":"+bot.Port)
-	if err != nil {
-		log.Fatal("unable to connect to IRC server ", err)
-	}
-	bot.Conn = conn
-	log.Printf("Connected to IRC server %s (%s)\n", bot.Server, bot.Conn.RemoteAddr())
-	return bot.Conn, nil
+func isPongLine(line string) bool {
+	return strings.Contains(line, "PING")
 }
 
 func main() {
+	log.Println("Incepe aplicatia de chat")
 	bot := NewBot()
 	conn, _ := bot.Connect()
-	fmt.Fprintf(conn, "USER %s 8 * :%s\r\n", bot.Nick, bot.Nick)
-	fmt.Fprintf(conn, "NICK %s\r\n", bot.Nick)
-	fmt.Fprintf(conn, "JOIN %s\r\n", bot.Channel)
+	fmt.Fprintf(conn, "JOIN %s"+crlf, bot.Channel)
 	defer conn.Close()
 
-	reader := bufio.NewReader(conn)
-	tp := textproto.NewReader(reader)
-	for {
-		line, err := tp.ReadLine()
-		if err != nil {
-			break // break loop on errors
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	//tp := textproto.NewReader(reader)
+	go func() {
+		reader := bufio.NewReader(conn)
+		for {
+			line, err := reader.ReadString('\n')
+
+			if err == io.EOF {
+				break // break loop on errors
+			}
+
+			if err != nil {
+				//could be this really fatal?
+				log.Fatalf("%v\n", err)
+			}
+
+			handleResponseLine(line, conn)
 		}
-		fmt.Printf("%s\n", line)
+
+		wg.Done()
+	}()
+
+	bot.register()
+
+	wg.Wait()
+}
+
+func handleResponseLine(line string, conn net.Conn) {
+	line = strings.TrimSuffix(line, crlf)
+	log.Println(line)
+	params := strings.Split(line, ":")
+	if len(params) > 2 {
+		//log.Println(params[2])
 	}
+
+	if strings.Contains(line, "PING") {
+		log.Println("Send PONG to the server")
+		fmt.Fprintf(conn, "PONG :%s%s", params[1], crlf)
+	}
+
 }
