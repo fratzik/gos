@@ -80,15 +80,34 @@ func main() {
 
 func handleResponseLine(line string, conn net.Conn) {
 	line = strings.TrimSuffix(line, crlf)
-	log.Println(line)
-	params := strings.Split(line, ":")
-	if len(params) > 2 {
-		//log.Println(params[2])
-	}
 
-	if strings.Contains(line, "PING") {
-		log.Println("Send PONG to the server")
-		fmt.Fprintf(conn, "PONG :%s%s", params[1], crlf)
+	lineChunks := strings.SplitN(line, " ", 5)
+
+	// if len(lineChunks) > 1 {
+	// 	switch lineChunks[1] {
+	// 	case "JOIN":
+
+	// 	}
+	// 	case "":
+	// }
+
+	// log.Println(line)
+
+	if len(lineChunks) > 0 {
+		if strings.Contains(line, "PING") {
+			log.Println("Send PONG to the server")
+			fmt.Fprintf(conn, "PONG :%s%s", lineChunks[0], crlf)
+		} else if strings.Contains(line, " 376 ") {
+			log.Println("Sending join command")
+			fmt.Fprintf(conn, "JOIN #%v\n", "go-test-bot")
+			// fmt.Fprintf(conn, "PONG :%s%s", params[1], crlf)
+		} else if strings.Contains(line, " JOIN ") {
+			log.Println("Sending welcome command")
+			fmt.Fprintf(conn, "PRIVMSG #%v: Hi!%v", "go-test-bot", crlf)
+		} else if strings.Contains(line, " PRIVMSG ") {
+			log.Println("Sending welcome command")
+			fmt.Fprintf(conn, "PRIVMSG #%v: Response to message.%v", "go-test-bot", crlf)
+		}
 	}
 
 }
