@@ -7,7 +7,11 @@ import (
 	"os"
 	"strings"
 	"sync"
+<<<<<<< HEAD
 	// archiveHandlers "../archive_handlers"
+=======
+
+>>>>>>> origin/master
 	archiveHandlers "github.com/fratzik/gos/1/archive_handlers"
 )
 
