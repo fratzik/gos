@@ -41,7 +41,6 @@ func init() {
 func main() {
 	bot = NewBot()
 	conn, _ := bot.Connect()
-	// fmt.Fprintf(conn, "JOIN %s%s", bot.Channel, crlf)
 	defer conn.Close()
 
 	var wg sync.WaitGroup
@@ -80,6 +79,7 @@ func handleResponseLine(line string, conn net.Conn) {
 		return
 	}
 
+	fmt.Println(line)
 	fmt.Println(chunks)
 	store.dispatch(chunks[1], bot, chunks)
 }
