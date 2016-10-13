@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 )
@@ -23,10 +22,4 @@ func (bot *Bot) Connect() (conn net.Conn, err error) {
 	bot.Conn = conn
 	log.Printf("Connected to IRC server %s (%s)\n", bot.Server, bot.Conn.RemoteAddr())
 	return bot.Conn, nil
-}
-
-func (c *Bot) register() {
-	log.Println("Sending connection commands...")
-	fmt.Fprintf(c.Conn, "NICK %v\n", c.Nick)
-	fmt.Fprintf(c.Conn, "USER %v 8 * :Greeting Bot Written in GoLang\n", c.Nick)
 }
