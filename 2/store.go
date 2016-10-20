@@ -9,40 +9,52 @@ import (
 type Store struct {
 }
 
+// Command object
+type Command struct {
+	Pattern string
+	Params  []interface{}
+}
+
 func (store Store) dispatch(command string, bot *Bot, chunks []string) {
-	params := []interface{}{}
-	pattern := ""
+
+	// params := []interface{}{}
+	// pattern := ""
+	commands := []Command{}
 
 	switch command {
 	case "PING":
 		log.Println("Send PONG to the server")
-		pattern = "PONG :%s%s"
-		params = append(params, chunks[0])
+
+		commands = append(commands, Command{"PONG :%s%s", []interface{}{chunks[0]}})
 	case "376":
 		log.Println("Sending join command")
-		pattern = "JOIN %v%s"
-		params = append(params, bot.Channel)
+		commands = append(commands, Command{"JOIN %v%s", []interface{}{bot.Channel}})
 	case "JOIN":
 		log.Println("Sending welcome command")
-		pattern = "PRIVMSG %v :Hi!%s"
-		params = append(params, bot.Channel)
+		commands = append(commands, Command{"PRIVMSG %v :Hi!%s", []interface{}{bot.Channel}})
 	case "PRIVMSG":
 		log.Printf("Private message received: %v", chunks[2])
-		pattern = "PRIVMSG %v :Response to message.%s"
-		params = append(params, bot.Channel)
+		commands = append(commands, Command{"PRIVMSG %v :Response to message.%s", []interface{}{bot.Channel}})
 	case "CONNECT":
 
-		//this should be removed in a way
-		fmt.Fprintf(bot.Conn, "NICK %v\n", bot.Nick)
-		pattern = "USER %v 8 * :This would be a description%s"
-		params = append(params, bot.Nick)
+		commands = append(commands, Command{"NICK %v%s", []interface{}{bot.Nick}})
+		commands = append(commands, Command{"USER %v 8 * :This would be a description%s", []interface{}{bot.Nick}})
 	}
 
-	if pattern != "" {
-		params = append(params, crlf)
-		commandString := fmt.Sprintf(pattern, params...)
-		log.Print(commandString)
-		fmt.Fprint(bot.Conn, commandString)
+	if len(commands) > 0 {
+
+		for _, command := range commands {
+			// log.Printf("value=%v", command)
+			params := append(command.Params, crlf)
+			// log.Println(params)
+			commandString := fmt.Sprintf(command.Pattern, params...)
+			// log.Print(commandString)
+			fmt.Fprint(bot.Conn, commandString)
+		}
+		// params = append(params, crlf)
+		// commandString := fmt.Sprintf(pattern, params...)
+		// log.Print(commandString)
+		// fmt.Fprint(bot.Conn, commandString)
 	}
 
 }

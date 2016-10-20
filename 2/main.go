@@ -31,7 +31,7 @@ func init() {
 	log.SetPrefix("» ")
 
 	flag.StringVar(&server, "server", "chat.freenode.net:6667", "The server to connect too")
-	flag.StringVar(&channel, "channel", "go-test-bot", "The channel connect too")
+	flag.StringVar(&channel, "channel", "go-test-bot2", "The channel connect too")
 	flag.StringVar(&botname, "test-bot", "gobotnm", "The name of the boot")
 	flag.Parse()
 
@@ -79,7 +79,7 @@ func handleResponseLine(line string, conn net.Conn) {
 		return
 	}
 
-	fmt.Println(line)
+	log.Println(line)
 	fmt.Println(chunks)
 	store.dispatch(chunks[1], bot, chunks)
 }
