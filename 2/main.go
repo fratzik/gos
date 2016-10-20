@@ -67,6 +67,7 @@ func main() {
 	}()
 
 	fakeChunks := make([]string, 2)
+
 	store.dispatch("CONNECT", bot, fakeChunks)
 
 	wg.Wait()
