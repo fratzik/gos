@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -31,11 +30,12 @@ func init() {
 	log.SetPrefix("» ")
 
 	flag.StringVar(&server, "server", "chat.freenode.net:6667", "The server to connect too")
-	flag.StringVar(&channel, "channel", "go-test-bot2", "The channel connect too")
+	flag.StringVar(&channel, "channel", "go-test-bot-1", "The channel connect too")
 	flag.StringVar(&botname, "test-bot", "gobotnm", "The name of the boot")
 	flag.Parse()
 
 	store = Store{}
+	initCommandsMap()
 }
 
 func main() {
@@ -50,24 +50,18 @@ func main() {
 		reader := bufio.NewReader(conn)
 		for {
 			line, err := reader.ReadString('\n')
-
 			if err == io.EOF {
 				break
 			}
-
 			if err != nil {
 				log.Fatalf("%v\n", err)
 			}
-
 			handleResponseLine(line, conn)
 		}
-
 		wg.Done()
 	}()
 
-	fakeChunks := make([]string, 2)
-	store.dispatch("CONNECT", bot, fakeChunks)
-
+	store.process([]string{"", "CONNECT"})
 	wg.Wait()
 }
 
@@ -79,7 +73,5 @@ func handleResponseLine(line string, conn net.Conn) {
 		return
 	}
 
-	log.Println(line)
-	fmt.Println(chunks)
-	store.dispatch(chunks[1], bot, chunks)
+	store.process(chunks)
 }
