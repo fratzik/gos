@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // Store - this is created as struct for the future state and functionality
 type Store struct {
 }
@@ -7,29 +9,31 @@ type Store struct {
 // Command object
 type Command struct {
 	Pattern string
-	Params  []interface{}
+	Name    string
+	Bot     *Bot
+}
+
+func (com Command) String() string {
+	var retStr string
+	switch com.Name {
+	default: //376, JOIN, PRIVMSG
+		retStr = fmt.Sprintf(com.Pattern, bot.Channel, crlf)
+	case "PING":
+		retStr = fmt.Sprintf(com.Pattern, com.Bot.Nick, crlf)
+	case "CONNECT":
+		retStr = fmt.Sprintf(com.Pattern, com.Bot.Nick, crlf, com.Bot.Nick, crlf)
+	}
+
+	return retStr
 }
 
 func (store Store) process(chunks []string) {
 
 	commandKey := chunks[1]
-	// commands := []Command
-
-	// fmt.Println("-----------")
-	// fmt.Println(commandKey)
-	// fmt.Printf("%v", commands)
-	// fmt.Println("-----------")
-
-	// commands := []Command{}
-
-	for k, patterns := range commandPatterns {
-		if commandKey == k {
-			// params = getParams(k)
-
-			if k == "CONNECT" {
-
-			}
-		}
+	pattern, ok := commandPatterns[commandKey]
+	if ok {
+		command := Command{Name: commandKey, Pattern: pattern[0], Bot: bot}
+		fmt.Fprint(bot.Conn, command)
 	}
 
 	// switch commandKey {

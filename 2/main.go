@@ -73,5 +73,7 @@ func handleResponseLine(line string, conn net.Conn) {
 		return
 	}
 
+	log.Println(line)
+
 	store.process(chunks)
 }
