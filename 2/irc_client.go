@@ -6,15 +6,17 @@ import (
 	"io"
 	"log"
 	"net"
+	"strings"
 	"sync"
 )
 
-// IrcClient the IRC Client
+// IrcClient - the IRC Client
 type IrcClient struct {
 	Bot  *Bot
 	Conn net.Conn
 }
 
+// HandleCommunication - handle the communication
 func (ic *IrcClient) HandleCommunication() {
 
 	ic.Connect()
@@ -33,7 +35,7 @@ func (ic *IrcClient) HandleCommunication() {
 				log.Fatalf("%v\n", err)
 			}
 
-			ic.HandleResponseLine(line)
+			ic.HandleServerResponse(line)
 		}
 		wg.Done()
 	}()
@@ -61,13 +63,18 @@ func (ic *IrcClient) connectBot() {
 	}
 }
 
-func (ic *IrcClient) HandleResponseLine(line string) {
+// HandleServerResponse - parse and handle text lines, received from IRC
+func (ic *IrcClient) HandleServerResponse(line string) {
 	command, chunks := GetLineCommand(line)
 	if command != nil {
 
 		//additional checks
 		if command.Name == "JOIN" {
-			fmt.Printf("JOIN params: %#v%s", chunks, crlf)
+			//check not to sent greeting message to yourself
+			if strings.Contains(chunks[0], ic.Bot.Nick) {
+				log.Println("It is not a nice thing to salute yourself.")
+				return
+			}
 		}
 
 		command.Bot = ic.Bot

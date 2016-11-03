@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	_ "net/textproto"
 )
 
 var crlf = "\r\n"
@@ -24,7 +23,6 @@ func init() {
 }
 
 func main() {
-
 	bot := CreateBot(server, channel, botname)
 	ic := CreateIrcClient(bot)
 	ic.HandleCommunication()
