@@ -1,13 +1,28 @@
 package main
 
-var commandPatterns map[string][]string
+var commandPatterns map[string]string
+
+//command idents
+const (
+	CmdPING    = "PING"
+	Cmd376     = "376"
+	CmdJOIN    = "JOIN"
+	CmdPRIVMSG = "PRIVMSG"
+	CmdCONNECT = "CONNECT"
+)
+
+//messages
+const (
+	MsgJOIN        = "Hello there!"
+	MsgMESSAGERESP = "This is a response to what you wrote."
+	MsgTextCONNECT = "Here is a text string"
+)
 
 func initCommandsMap() {
-	commandPatterns = map[string][]string{
-		"PING":    {"PONG :%s%s"},
-		"376":     {"JOIN %v%s"},
-		"JOIN":    {"PRIVMSG %v :Hi!%s"},
-		"PRIVMSG": {"PRIVMSG %v :Response to message.%s"},
-		"CONNECT": {"NICK %v%sUSER %v 8 * :Here is a text string%s"},
-	}
+	commandPatterns = map[string]string{
+		CmdPING:    "PONG :%s%s",
+		Cmd376:     "JOIN %v%s",
+		CmdJOIN:    "PRIVMSG %v :" + MsgJOIN + "%s",
+		CmdPRIVMSG: "PRIVMSG %v :" + MsgMESSAGERESP + "%s",
+		CmdCONNECT: "NICK %v%sUSER %v 8 * :" + MsgTextCONNECT + "%s"}
 }
