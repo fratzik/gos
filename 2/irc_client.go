@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/fratzik/gos/2/processors"
 	"github.com/mvdan/xurls"
 )
 
@@ -80,7 +81,7 @@ func (ic *IrcClient) HandleServerResponse(line string) {
 		} else if command.Name == CmdPRIVMSG {
 			urls := xurls.Strict.FindAllString(line, -1)
 			if len(urls) > 0 {
-
+				processors.GetU
 			}
 			fmt.Printf("%v", urls)
 		}
