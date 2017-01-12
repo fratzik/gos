@@ -4,11 +4,12 @@ var commandPatterns map[string]string
 
 //command idents
 const (
-	CmdPING    = "PING"
-	Cmd376     = "376"
-	CmdJOIN    = "JOIN"
-	CmdPRIVMSG = "PRIVMSG"
-	CmdCONNECT = "CONNECT"
+	CmdPING     = "PING"
+	Cmd376      = "376"
+	CmdJOIN     = "JOIN"
+	CmdPRIVMSG  = "PRIVMSG"
+	CmdCONNECT  = "CONNECT"
+	CmdURLTitle = "SEND_URL_TITLE"
 )
 
 //messages

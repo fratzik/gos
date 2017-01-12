@@ -1,9 +1,6 @@
 package main
 
-import (
-	"log"
-	"strings"
-)
+import "strings"
 
 // CreateIrcClient - Create and return a new instance of &IrcClient
 func CreateIrcClient(bot *Bot) *IrcClient {
@@ -23,7 +20,7 @@ func GetLineCommand(line string) (*Command, []string) {
 		return nil, nil
 	}
 
-	log.Println("Line to handle: " + line)
+	// log.Println("Line to handle: " + line)
 	commandKey := chunks[1]
 
 	if isKnownCommand(strings.TrimSpace(chunks[0])) {
@@ -36,5 +33,5 @@ func GetLineCommand(line string) (*Command, []string) {
 		return nil, nil
 	}
 
-	return &Command{Name: commandKey, Pattern: pattern}, chunks
+	return NewCommand(commandKey, pattern), chunks
 }

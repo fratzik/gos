@@ -69,6 +69,7 @@ func (ic *IrcClient) connectBot() {
 // HandleServerResponse - parse and handle text lines, received from IRC
 func (ic *IrcClient) HandleServerResponse(line string) {
 	command, chunks := GetLineCommand(line)
+
 	if command != nil {
 
 		//additional checks
@@ -85,10 +86,11 @@ func (ic *IrcClient) HandleServerResponse(line string) {
 				if err != nil {
 					log.Println(err)
 				} else {
-					fmt.Println("Found this title: ", pageTitle)
+					command.Name = CmdURLTitle
+					command.Pattern = "PRIVMSG %v :Recognized a title: %s %s"
+					command.AddAdditionalParam("title", pageTitle)
 				}
 			}
-			fmt.Printf("%v", urls)
 		}
 
 		command.Bot = ic.Bot
