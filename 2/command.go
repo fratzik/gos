@@ -1,6 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/fratzik/gos/2/processors"
+	"github.com/mvdan/xurls"
+)
 
 // Command object
 type Command struct {
@@ -43,4 +49,31 @@ func (com *Command) AddAdditionalParam(name string, value string) {
 
 func (com *Command) GetAdditionalParam(name string) interface{} {
 	return com.Params[name]
+}
+
+func ExecExtraProcess(command *Command, line string, chunks []string) bool {
+
+	if command.Name == CmdJOIN {
+		//check not to sent greeting message to yourself
+		if strings.Contains(chunks[0], command.Bot.Nick) {
+			// log.Println("It is not a nice thing to salute yourself.")
+			return false
+		}
+	}
+
+	if command.Name == CmdPRIVMSG {
+		urls := xurls.Strict.FindAllString(line, -1)
+		if len(urls) > 0 {
+			pageTitle, err := processors.GetUrlTitle(urls[0])
+			if err == nil {
+				// log.Println(err)
+				// } else {
+				command.Name = CmdURLTitle
+				command.Pattern = "PRIVMSG %v :Recognized a title: %s %s"
+				command.AddAdditionalParam("title", pageTitle)
+			}
+		}
+	}
+
+	return true
 }

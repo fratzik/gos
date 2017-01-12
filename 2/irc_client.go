@@ -6,11 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
-	"strings"
 	"sync"
-
-	"github.com/fratzik/gos/2/processors"
-	"github.com/mvdan/xurls"
 )
 
 // IrcClient - the IRC Client
@@ -71,29 +67,13 @@ func (ic *IrcClient) HandleServerResponse(line string) {
 	command, chunks := GetLineCommand(line)
 
 	if command != nil {
+		command.Bot = ic.Bot
+		goNext := ExecExtraProcess(command, line, chunks)
 
-		//additional checks
-		if command.Name == "JOIN" {
-			//check not to sent greeting message to yourself
-			if strings.Contains(chunks[0], ic.Bot.Nick) {
-				log.Println("It is not a nice thing to salute yourself.")
-				return
-			}
-		} else if command.Name == CmdPRIVMSG {
-			urls := xurls.Strict.FindAllString(line, -1)
-			if len(urls) > 0 {
-				pageTitle, err := processors.GetUrlTitle(urls[0])
-				if err != nil {
-					log.Println(err)
-				} else {
-					command.Name = CmdURLTitle
-					command.Pattern = "PRIVMSG %v :Recognized a title: %s %s"
-					command.AddAdditionalParam("title", pageTitle)
-				}
-			}
+		if !goNext {
+			return
 		}
 
-		command.Bot = ic.Bot
 		ic.SendCommand(command)
 	}
 }
