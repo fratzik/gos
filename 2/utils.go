@@ -23,7 +23,7 @@ func GetLineCommand(line string) (*Command, []string) {
 		return nil, nil
 	}
 
-	log.Println(line)
+	log.Println("Line to handle: " + line)
 	commandKey := chunks[1]
 
 	if isKnownCommand(strings.TrimSpace(chunks[0])) {

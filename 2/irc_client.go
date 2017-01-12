@@ -8,6 +8,8 @@ import (
 	"net"
 	"strings"
 	"sync"
+
+	"github.com/mvdan/xurls"
 )
 
 // IrcClient - the IRC Client
@@ -75,6 +77,12 @@ func (ic *IrcClient) HandleServerResponse(line string) {
 				log.Println("It is not a nice thing to salute yourself.")
 				return
 			}
+		} else if command.Name == CmdPRIVMSG {
+			urls := xurls.Strict.FindAllString(line, -1)
+			if len(urls) > 0 {
+
+			}
+			fmt.Printf("%v", urls)
 		}
 
 		command.Bot = ic.Bot
