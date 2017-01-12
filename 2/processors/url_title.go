@@ -1,21 +1,13 @@
 package processors
 
 import (
-	"bytes"
-	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-)
 
-type html struct {
-	Title title `xml:"title"`
-}
-type title struct {
-	Content string `xml:",innerxml"`
-}
+	"golang.org/x/net/html"
+)
 
 func GetUrlTitle(urlAddr string) (string, error) {
 	var title string
@@ -36,26 +28,44 @@ func GetUrlTitle(urlAddr string) (string, error) {
 		return title, errors.New(fmt.Sprintf("Invalid status on request %v", res.StatusCode))
 	} else {
 
-		b, err := ioutil.ReadAll(res.Body)
-		res.Body.Close()
-		if err != nil {
-			return title, err
-		} else {
-			h := html{}
-			err := xml.NewDecoder(bytes.NewBuffer(b)).Decode(&h)
-			if err != nil {
-				fmt.Println("Error parsing html page", err)
-				return title, err
-			}
+		// b, err := ioutil.ReadAll(res.Body)
+		z := html.NewTokenizer(res.Body)
 
-			fmt.Println(h.Title.Content)
-			return h.Title.Content, nil
-			// r, _ := regexp.Compile(`<title>.*<\/title>`)
-			// matches := r.FindAll(bytes, 1)
-			// if len(matches) > 0 {
-			// 	return string(matches[0]), nil
-			// }
+		for {
+			tt := z.Next()
+
+			switch {
+			case tt == html.ErrorToken:
+				// Reaching the end of document
+				return title, err
+			case tt == html.StartTagToken:
+				t := z.Token()
+
+				isTitle := t.Data == "title"
+				if isTitle {
+					fmt.Println("We found a link!")
+					fmt.Printf("%v", t)
+				}
+			}
 		}
+		// if err != nil {
+		// 	return title, err
+		// } else {
+		// h := html{}
+		// err := xml.NewDecoder(bytes.NewBuffer(b)).Decode(&h)
+		// if err != nil {
+		// 	fmt.Println("Error parsing html page", err)
+		// 	return title, err
+		// }
+
+		// fmt.Println(h.Title.Content)
+		// return h.Title.Content, nil
+		// r, _ := regexp.Compile(`<title>.*<\/title>`)
+		// matches := r.FindAll(bytes, 1)
+		// if len(matches) > 0 {
+		// 	return string(matches[0]), nil
+		// }
+		// }
 	}
 
 	return title, err
