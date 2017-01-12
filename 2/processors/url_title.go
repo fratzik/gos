@@ -3,10 +3,8 @@ package processors
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -15,46 +13,53 @@ func isTitleElement(n *html.Node) bool {
 	return n.Type == html.ElementNode && n.Data == "title"
 }
 
+func traverse(n *html.Node) (string, bool) {
+	if isTitleElement(n) {
+		return n.FirstChild.Data, true
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		result, ok := traverse(c)
+		if ok {
+			return result, ok
+		}
+	}
+
+	return "", false
+}
+
 func GetUrlTitle(urlAddr string) (string, error) {
 	var title string
 	var err error
 
-	_, urlErr := url.Parse(urlAddr)
-	if urlErr != nil {
-		return title, urlErr
-	}
-
-	res, err := http.Get(urlAddr)
-
+	resp, err := http.Head(urlAddr)
 	if err != nil {
 		return title, err
 	}
 
-	if res.StatusCode != http.StatusOK {
-		return title, errors.New(fmt.Sprintf("Invalid status on request %v", res.StatusCode))
-	} else {
-		htmlStr, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return title, err
-		}
-		doc, err := html.Parse(strings.NewReader(string(htmlStr)))
-		if err != nil {
-			return title, err
-		}
+	if resp.ContentLength > 1*1024*1024 {
+		return title, errors.New(fmt.Sprintf("Dropping request for url %s due to large size: %d", urlAddr, resp.ContentLength))
+	}
 
-		var f func(*html.Node)
-		f = func(n *html.Node) {
-			if n.Type == html.ElementNode && n.Data == "title" {
-				for c := n.FirstChild; c != nil; c = c.NextSibling {
-					title = c.Data
-					break
-				}
-			}
-			for c := n.FirstChild; c != nil; c = c.NextSibling {
-				f(c)
-			}
-		}
-		f(doc)
+	resp, err = http.Get(urlAddr)
+
+	if resp.StatusCode != http.StatusOK {
+		return title, errors.New(fmt.Sprintf("Invalid status on request %v", resp.StatusCode))
+	}
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+	defer resp.Body.Close()
+
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+
+	title, ok := traverse(doc)
+
+	if ok {
+		return title, nil
 	}
 
 	return title, err

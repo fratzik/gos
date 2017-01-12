@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/fratzik/gos/2/processors"
@@ -26,7 +27,7 @@ func (com Command) String() string {
 	case CmdCONNECT:
 		retStr = fmt.Sprintf(com.Pattern, com.Bot.Nick, crlf, com.Bot.Nick, crlf)
 	case CmdURLTitle:
-		retStr = fmt.Sprintf(com.Pattern, com.Bot.Channel, com.GetAdditionalParam("title"), crlf)
+		retStr = fmt.Sprintf(com.Pattern, com.Bot.Channel, com.GetAdditionalParam("urlsLen"), com.GetAdditionalParam("title"), crlf)
 	}
 
 	return retStr
@@ -43,13 +44,15 @@ func isKnownCommand(commandKey string) bool {
 	return commandKey == CmdPING || commandKey == CmdCONNECT || commandKey == Cmd376 || commandKey == CmdJOIN || commandKey == CmdPRIVMSG
 }
 
-func (com *Command) AddAdditionalParam(name string, value string) {
+func (com *Command) AddAdditionalParam(name string, value interface{}) {
 	com.Params[name] = value
 }
 
 func (com *Command) GetAdditionalParam(name string) interface{} {
 	return com.Params[name]
 }
+
+var titles []string
 
 func ExecExtraProcess(command *Command, line string, chunks []string) bool {
 
@@ -63,15 +66,25 @@ func ExecExtraProcess(command *Command, line string, chunks []string) bool {
 
 	if command.Name == CmdPRIVMSG {
 		urls := xurls.Strict.FindAllString(line, -1)
-		if len(urls) > 0 {
-			pageTitle, err := processors.GetUrlTitle(urls[0])
-			if err == nil {
-				// log.Println(err)
-				// } else {
-				command.Name = CmdURLTitle
-				command.Pattern = "PRIVMSG %v :Recognized a title: %s %s"
-				command.AddAdditionalParam("title", pageTitle)
+
+		titles = []string{}
+
+		for _, v := range urls {
+			pageTitle, err := processors.GetUrlTitle(v)
+			if err != nil {
+				log.Printf("%v\n", err)
+			} else {
+				titles = append(titles, pageTitle)
+				// fmt.Println("Title: ", pageTitle)
 			}
+
+		}
+		// fmt.Printf("%v", urls)
+		if len(titles) > 0 {
+			command.Name = CmdURLTitle
+			command.Pattern = "PRIVMSG %v :Recognized %d title(s): %s %s"
+			command.AddAdditionalParam("urlsLen", len(titles))
+			command.AddAdditionalParam("title", strings.Join(titles, " | "))
 		}
 	}
 
