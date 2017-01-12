@@ -3,11 +3,17 @@ package processors
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"golang.org/x/net/html"
 )
+
+func isTitleElement(n *html.Node) bool {
+	return n.Type == html.ElementNode && n.Data == "title"
+}
 
 func GetUrlTitle(urlAddr string) (string, error) {
 	var title string
@@ -27,45 +33,28 @@ func GetUrlTitle(urlAddr string) (string, error) {
 	if res.StatusCode != http.StatusOK {
 		return title, errors.New(fmt.Sprintf("Invalid status on request %v", res.StatusCode))
 	} else {
+		htmlStr, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return title, err
+		}
+		doc, err := html.Parse(strings.NewReader(string(htmlStr)))
+		if err != nil {
+			return title, err
+		}
 
-		// b, err := ioutil.ReadAll(res.Body)
-		z := html.NewTokenizer(res.Body)
-
-		for {
-			tt := z.Next()
-
-			switch {
-			case tt == html.ErrorToken:
-				// Reaching the end of document
-				return title, err
-			case tt == html.StartTagToken:
-				t := z.Token()
-
-				isTitle := t.Data == "title"
-				if isTitle {
-					fmt.Println("We found a link!")
-					fmt.Printf("%v", t)
+		var f func(*html.Node)
+		f = func(n *html.Node) {
+			if n.Type == html.ElementNode && n.Data == "title" {
+				for c := n.FirstChild; c != nil; c = c.NextSibling {
+					title = c.Data
+					break
 				}
 			}
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				f(c)
+			}
 		}
-		// if err != nil {
-		// 	return title, err
-		// } else {
-		// h := html{}
-		// err := xml.NewDecoder(bytes.NewBuffer(b)).Decode(&h)
-		// if err != nil {
-		// 	fmt.Println("Error parsing html page", err)
-		// 	return title, err
-		// }
-
-		// fmt.Println(h.Title.Content)
-		// return h.Title.Content, nil
-		// r, _ := regexp.Compile(`<title>.*<\/title>`)
-		// matches := r.FindAll(bytes, 1)
-		// if len(matches) > 0 {
-		// 	return string(matches[0]), nil
-		// }
-		// }
+		f(doc)
 	}
 
 	return title, err
