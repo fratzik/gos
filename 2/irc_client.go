@@ -81,7 +81,12 @@ func (ic *IrcClient) HandleServerResponse(line string) {
 		} else if command.Name == CmdPRIVMSG {
 			urls := xurls.Strict.FindAllString(line, -1)
 			if len(urls) > 0 {
-				processors.GetU
+				pageTitle, err := processors.GetUrlTitle(urls[0])
+				if err != nil {
+					log.Println(err)
+				} else {
+					fmt.Println("Found this title: ", pageTitle)
+				}
 			}
 			fmt.Printf("%v", urls)
 		}

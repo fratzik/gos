@@ -1,13 +1,21 @@
 package processors
 
 import (
+	"bytes"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"regexp"
 )
+
+type html struct {
+	Title title `xml:"title"`
+}
+type title struct {
+	Content string `xml:",innerxml"`
+}
 
 func GetUrlTitle(urlAddr string) (string, error) {
 	var title string
@@ -27,15 +35,24 @@ func GetUrlTitle(urlAddr string) (string, error) {
 	if res.StatusCode != http.StatusOK {
 		return title, errors.New(fmt.Sprintf("Invalid status on request %v", res.StatusCode))
 	} else {
-		bytes, err := ioutil.ReadAll(res.Body)
+		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return title, err
 		} else {
-			r, _ := regexp.Compile(`<title>.*<\/title>`)
-			matches := r.FindAll(bytes, 1)
-			if len(matches) > 0 {
-				return string(matches[0]), nil
+			h := html{}
+			err := xml.NewDecoder(bytes.NewBuffer(b)).Decode(&h)
+			if err != nil {
+				fmt.Println("Error parsing html page", err)
+				return title, err
 			}
+
+			fmt.Println(h.Title.Content)
+			return h.Title.Content, nil
+			// r, _ := regexp.Compile(`<title>.*<\/title>`)
+			// matches := r.FindAll(bytes, 1)
+			// if len(matches) > 0 {
+			// 	return string(matches[0]), nil
+			// }
 		}
 	}
 
