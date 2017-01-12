@@ -35,8 +35,9 @@ func GetUrlTitle(urlAddr string) (string, error) {
 	if res.StatusCode != http.StatusOK {
 		return title, errors.New(fmt.Sprintf("Invalid status on request %v", res.StatusCode))
 	} else {
-		res.Body.Close()
+
 		b, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
 		if err != nil {
 			return title, err
 		} else {
